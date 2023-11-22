@@ -101,7 +101,7 @@ class NIAcquisition(BaseAcquisition):
         if self.task_terminated:
             if self.NITask_used:
                 channels_base = copy.deepcopy(self.task_base.channels)
-                self.Task = NITask(self.task_base.task_name, self.task_base.sample_rate, self.task_base.settings_file)
+                self.Task = NITask(self.task_base.task_name, self.task_base.sample_rate, self.task_base.overwrite, self.task_base.settings_file)
                 self.task_name = self.task_base.task_name
 
                 for channel_name, channel in channels_base.items():

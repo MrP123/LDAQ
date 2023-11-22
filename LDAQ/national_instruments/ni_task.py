@@ -126,12 +126,13 @@ class NITaskOutput:
         return f"Task name: {self.task_name}\nConnected devices:\n{devices:s}\nChannels: {list(self.channels.keys())}"
 
 class NITask:
-    def __init__(self, task_name: str, sample_rate: float, settings_file: Optional[str] = None) -> None:
+    def __init__(self, task_name: str, sample_rate: float, overwrite: Optional[bool] = False ,settings_file: Optional[str] = None) -> None:
         """Create a new NI task.
         
         Args:
             task_name: Name of the task.
             sample_rate: Sample rate in Hz.
+            overwrite: Whether to overwrite the task if it already exists. Defaults to False.
             settings_file: Path to xlsx settings file. The settings file must contain the following columns:
                 - serial_nr: serial number of the sensor
                 - sensitivity: sensitivity of the sensor
@@ -143,9 +144,10 @@ class NITask:
 
         self.system = nidaqmx.system.System.local()
         self.device_list = [_.name for _ in list(self.system.devices)]
+        self.overwrite = overwrite
 
-        if task_name in self.system.tasks.task_names:
-            raise Exception(f"Task {task_name} already exists.")
+        if task_name in self.system.tasks.task_names and not self.overwrite:
+            raise Exception(f"Task {task_name} already exists. Use overwrite=True to overwrite the task.")
 
         self.settings_file = settings_file
         self.sample_rate = sample_rate
@@ -161,7 +163,7 @@ class NITask:
         try:
             self.task = nidaqmx.task.Task(new_task_name=self.task_name)
         except nidaqmx.DaqError:
-            raise Exception(f"Task name {self.task_name} already exists.")
+            raise Exception(f"Task name {self.task_name} already exists. Set parameter overwrite=True to overwrite the task.")
 
     def _read_settings_file(self, file_name):
         if isinstance(file_name, str):
