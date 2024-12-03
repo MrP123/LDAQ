@@ -14,6 +14,7 @@ UNITS = {
     'mV/N': constants.ForceIEPESensorSensitivityUnits.MILLIVOLTS_PER_NEWTON,
     'N': constants.ForceUnits.NEWTONS,
     'V': constants.VoltageUnits.VOLTS,
+    'mV/V': constants.BridgeUnits.MILLIVOLTS_PER_VOLT,
 }
 
 class NITaskOutput:
@@ -315,6 +316,7 @@ class NITask:
         if self.channels[channel_name]['max_val']:
             options['max_val'] = self.channels[channel_name]['max_val']
 
+        #print(f"Adding channel {channel_name} with mode {mode}.")
         if mode == 'ForceUnits':
             options['sensitivity_units'] = UNITS[self.channels[channel_name]['sensitivity_units']]
             options['units'] = UNITS[self.channels[channel_name]['units']]
@@ -332,6 +334,20 @@ class NITask:
             if options['custom_scale_name'] != "":
                 options['units'] = constants.VoltageUnits.FROM_CUSTOM_SCALE
             self.channel_objects.append(self.task.ai_channels.add_ai_voltage_chan(**options))
+
+        elif mode == 'BridgeUnits':
+            # Bridge channels must not contain those options
+            options['units'] = UNITS[self.channels[channel_name]['units']]
+            options['bridge_config'] = constants.BridgeConfiguration.FULL_BRIDGE
+            options['voltage_excit_source'] = constants.ExcitationSource.INTERNAL
+            options['voltage_excit_val'] = 5.0
+            options['nominal_bridge_resistance'] = 350.0
+            options = dict([(k, v) for k, v in options.items() if k in ['physical_channel', 'name_to_assign_to_channel', 'units', 'min_val', 'max_val', 'bridge_config', 'voltage_excit_source', 'voltage_excit_val', 'nominal_bridge_resistance']])
+            
+            print(f"options: {options}")
+            
+            self.channel_objects.append(self.task.ai_channels.add_ai_bridge_chan(**options))
+            #should ideally be changed to add_ai_force_bridge_two_point_lin_chan
 
     def _setup_task(self):
         self.task.timing.cfg_samp_clk_timing(
