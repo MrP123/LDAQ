@@ -118,6 +118,16 @@ class NIAcquisition(BaseAcquisition):
                 self.task_name = self.task_base.task_name
 
                 for channel_name, channel in channels_base.items():
+                    
+                    # Handled by standard parameters of add_channel()
+                    default_options = ['device_ind', 'channel_ind', 'sensitivity', 'sensitivity_units', 'units', 'serial_nr', 'scale', 'min_val', 'max_val']
+                    
+                    # Additional options must be extracted and passed as **kwargs
+                    additional_options = {}
+                    for k, v, in channel.items():
+                        if k not in default_options:
+                            additional_options[k] = v
+
                     self.Task.add_channel(
                         channel_name, 
                         channel['device_ind'],
@@ -128,7 +138,8 @@ class NIAcquisition(BaseAcquisition):
                         channel['serial_nr'],
                         channel['scale'],
                         channel['min_val'],
-                        channel['max_val'])
+                        channel['max_val'],
+                        **additional_options)
             else:
                 self.Task = DAQTask(self.task_base)
             

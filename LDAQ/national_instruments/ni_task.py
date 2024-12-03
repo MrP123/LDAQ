@@ -196,7 +196,7 @@ class NITask:
         if start_task:
             self.task.start()
 
-    def add_channel(self, channel_name: str, device_ind: int, channel_ind: int, sensitivity: Optional[float] = None, sensitivity_units: Optional[str] = None, units: Optional[str] = None, serial_nr: Optional[str] = None, scale: Optional[float] = None, min_val: Optional[float] = None, max_val: Optional[float] = None) -> None:
+    def add_channel(self, channel_name: str, device_ind: int, channel_ind: int, sensitivity: Optional[float] = None, sensitivity_units: Optional[str] = None, units: Optional[str] = None, serial_nr: Optional[str] = None, scale: Optional[float] = None, min_val: Optional[float] = None, max_val: Optional[float] = None, **kwargs) -> None:
         """Add a channel to the task. The channel is not actually added to the task until the task is initiated.
 
         Args:
@@ -250,7 +250,7 @@ class NITask:
             
         if units is None:
             raise Exception('Units must be specified.')
-        
+
         self.channels[channel_name] = {
             'device_ind': device_ind,
             'channel_ind': channel_ind,
@@ -263,6 +263,14 @@ class NITask:
             'min_val': min_val,
             'max_val': max_val
         }
+
+        # Add optional kwargs to the channel
+        for key, value in kwargs.items():
+            self.channels[channel_name][key] = value
+
+        #print("Channel settings:")
+        #for k, v in self.channels[channel_name].items():
+        #    print(f"\t{k}: {v}")
 
         if scale is not None:
             if isinstance(scale, float):
@@ -337,11 +345,20 @@ class NITask:
 
         elif mode == 'BridgeUnits':
             # Bridge channels must not contain those options
-            options['units'] = UNITS[self.channels[channel_name]['units']]
-            options['bridge_config'] = constants.BridgeConfiguration.FULL_BRIDGE
-            options['voltage_excit_source'] = constants.ExcitationSource.INTERNAL
-            options['voltage_excit_val'] = 5.0
-            options['nominal_bridge_resistance'] = 350.0
+            options['units'] = UNITS[self.channels[channel_name]['units']]            
+
+            required_options_defaults = {
+                'bridge_config': constants.BridgeConfiguration.FULL_BRIDGE,
+                'voltage_excit_source': constants.ExcitationSource.INTERNAL,
+                'voltage_excit_val': 5.0,
+                'nominal_bridge_resistance': 350.0,
+            }
+
+            for k, v in required_options_defaults.items():
+                if k not in self.channels[channel_name]:
+                    self.channels[channel_name][k] = v
+                    print(f"Added default value for '{k}'")
+
             options = dict([(k, v) for k, v in options.items() if k in ['physical_channel', 'name_to_assign_to_channel', 'units', 'min_val', 'max_val', 'bridge_config', 'voltage_excit_source', 'voltage_excit_val', 'nominal_bridge_resistance']])
             
             print(f"options: {options}")
