@@ -15,6 +15,9 @@ UNITS = {
     'N': constants.ForceUnits.NEWTONS,
     'V': constants.VoltageUnits.VOLTS,
     'mV/V': constants.BridgeUnits.MILLIVOLTS_PER_VOLT,
+    'V/V': constants.BridgeUnits.VOLTS_PER_VOLT,
+    'm/m': constants.StrainUnits.STRAIN,
+    'mm/mm': constants.StrainUnits.STRAIN
 }
 
 class NITaskOutput:
@@ -360,11 +363,28 @@ class NITask:
                     #print(f"Added default value for '{k}'")
 
             options = dict([(k, v) for k, v in options.items() if k in ['physical_channel', 'name_to_assign_to_channel', 'units', 'min_val', 'max_val', 'bridge_config', 'voltage_excit_source', 'voltage_excit_val', 'nominal_bridge_resistance']])
-            
-            #print(f"options: {options}")
-            
             self.channel_objects.append(self.task.ai_channels.add_ai_bridge_chan(**options))
             #should ideally be changed to add_ai_force_bridge_two_point_lin_chan
+
+        elif mode == 'StrainUnits':
+            options['units'] = UNITS[self.channels[channel_name]['units']]
+            required_options_defaults = {
+                'strain_config': constants.StrainGageBridgeType.QUARTER_BRIDGE_I,
+                'voltage_excit_source': constants.ExcitationSource.INTERNAL,
+                'voltage_excit_val': 2.5,
+                'gage_factor': 2.0,
+                'initial_bridge_voltage': 0.0,
+                'nominal_gage_resistance': 120.0,
+                'poisson_ratio': 0.3,
+                'lead_wire_resistance': 0.0,
+            }
+            for k, v in required_options_defaults.items():
+                if k not in self.channels[channel_name]:
+                    self.channels[channel_name][k] = v
+
+            passed_options = ['physical_channel', 'name_to_assign_to_channel', 'units', 'min_val', 'max_val', 'strain_config', 'voltage_excit_source', 'voltage_excit_val', 'gage_factor', 'initial_bridge_voltage', 'nominal_gage_resistance', 'poisson_ratio', 'lead_wire_resistance']
+            options = dict([(k, v) for k, v in options.items() if k in passed_options])
+            self.channel_objects.append(self.task.ai_channels.add_ai_strain_gage_chan(**options))
 
     def _setup_task(self):
         self.task.timing.cfg_samp_clk_timing(
