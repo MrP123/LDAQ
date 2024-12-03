@@ -357,11 +357,11 @@ class NITask:
             for k, v in required_options_defaults.items():
                 if k not in self.channels[channel_name]:
                     self.channels[channel_name][k] = v
-                    print(f"Added default value for '{k}'")
+                    #print(f"Added default value for '{k}'")
 
             options = dict([(k, v) for k, v in options.items() if k in ['physical_channel', 'name_to_assign_to_channel', 'units', 'min_val', 'max_val', 'bridge_config', 'voltage_excit_source', 'voltage_excit_val', 'nominal_bridge_resistance']])
             
-            print(f"options: {options}")
+            #print(f"options: {options}")
             
             self.channel_objects.append(self.task.ai_channels.add_ai_bridge_chan(**options))
             #should ideally be changed to add_ai_force_bridge_two_point_lin_chan
