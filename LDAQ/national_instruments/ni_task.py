@@ -347,6 +347,15 @@ class NITask:
             self.channel_objects.append(self.task.ai_channels.add_ai_voltage_chan(**options))
 
         elif mode == 'BridgeUnits':
+
+            from inspect import signature
+            sig = signature(self.task.ai_channels.add_ai_bridge_chan)
+            for param in sig.parameters.values():
+                if param.default == param.empty:
+                    print(f"Parameter {param.name} ({param.annotation}, {param.kind})  is required.")
+                else:
+                    print(f"Parameter {param.name} ({param.annotation}, {param.kind}, Default={param.default})  is optional.")
+
             # Bridge channels must not contain those options
             options['units'] = UNITS[self.channels[channel_name]['units']]            
 
