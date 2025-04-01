@@ -40,3 +40,13 @@ import LDAQ
 #     assert vis.subplot_options[(0, 0)]['axis_style'] == 'semilogy'
 #     assert vis.subplot_options[(0, 0)]['colspan'] == 1
 #     assert vis.subplot_options[(0, 0)]['rowspan'] == 1
+
+#     vis.config_subplot((0, 1), xlim=(0, 10), title='Test title 2nd subplot', linked_axis=(0, 0), link_kind='y')
+
+#     assert (0, 1) in vis.subplot_options.keys()
+#     assert vis.subplot_options[(0, 1)]['xlim'] == (0, 10)
+#     assert vis.subplot_options[(0, 1)]['title'] == 'Test title 2nd subplot'
+#     assert vis.subplot_options[(0, 1)]['linked_axis'] == (0, 0)
+#     assert vis.subplot_options[(0, 1)]['link_kind'] == 'y'
+#     assert vis.subplot_options[(0, 1)]['colspan'] == 1
+#     assert vis.subplot_options[(0, 1)]['rowspan'] == 1

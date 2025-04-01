@@ -312,7 +312,7 @@ class Visualization:
         self.color_map = colormap
 
 
-    def config_subplot(self, position: Tuple[int, int], xlim: Optional[Tuple[float, float]] = None, ylim: Optional[Tuple[float, float]] = None, t_span: Optional[float] = None, axis_style: Optional[str] = 'linear', title: Optional[str] = None, rowspan: int = 1, colspan: int = 1) -> None:
+    def config_subplot(self, position: Tuple[int, int], xlim: Optional[Tuple[float, float]] = None, ylim: Optional[Tuple[float, float]] = None, t_span: Optional[float] = None, linked_axis: Optional[Tuple[int, int]] = None, link_kind: Optional[str] = 'x', axis_style: Optional[str] = 'linear', title: Optional[str] = None, rowspan: int = 1, colspan: int = 1) -> None:
         """Configure a subplot at position `position`.
 
         Args:
@@ -321,6 +321,8 @@ class Visualization:
             ylim (tuple, optional): Tuple of two floats, the limits of the y-axis. Defaults to None.
             t_span (int/float, optional): The length of the time axis. If this option is not specified, it is computed from the `xlim`.
                 Defaults to None.
+            linked_axis (tuple): Tuple of two integers, the position of the subplot in the layout that this plot should be linked to.
+            link_kind (str): String representing how to link the two axes. Can be "x", "y", "xy". Defaults to "x".
             axis_style (str, optional): The style of the axis. Can be "linear", "semilogx", "semilogy" or "loglog". Defaults to "linear".
             title (str, optional): The title of the subplot. Defaults to None.
             rowspan (int, optional): The number of rows the subplot spans. Defaults to 1.
@@ -339,6 +341,10 @@ class Visualization:
             self.subplot_options[position]['ylim'] = ylim
         if t_span is not None:
             self.subplot_options[position]['t_span'] = t_span
+        if linked_axis is not None:
+            self.subplot_options[position]['linked_axis'] = linked_axis
+        if link_kind is not None:
+            self.subplot_options[position]['link_kind'] = link_kind
         if axis_style is not None:
             self.subplot_options[position]['axis_style'] = axis_style
         if title is not None:
@@ -681,7 +687,27 @@ class MainWindow(QMainWindow):
                         self.subplots[pos].setXRange(transform_lim_x(options['xlim'][0]), transform_lim_x(options['xlim'][1]))
                     if 'ylim' in options:
                         self.subplots[pos].setYRange(transform_lim_y(options['ylim'][0]), transform_lim_y(options['ylim'][1]))
-                
+
+        # Linking axes has to occur separately after all subplots are processed once already.
+        # Otherwise we might link to an axis that has not yet been created, because the config_subplot() function was not for it.
+        for pos in self.vis.subplot_options.keys():
+            if pos in self.vis.subplot_options.keys():
+                options = self.vis.subplot_options[pos]
+
+                if 'linked_axis' in options:
+                    axis_to_link = options['linked_axis']
+                    kind = options['link_kind']
+
+                if kind == "x":
+                    self.subplots[pos].setXLink(self.subplots[axis_to_link])
+                elif kind == "y":
+                    self.subplots[pos].setYLink(self.subplots[axis_to_link])
+                elif kind == "xy":
+                    self.subplots[pos].setXLink(self.subplots[axis_to_link])
+                    self.subplots[pos].setYLink(self.subplots[axis_to_link])
+                else:
+                    raise ValueError("Invalid kind of linked axis. Only 'x', 'y', or 'xy' are allowed")
+
         # Create lines for each plot channel
         images = 0
         for source, plot_channels in self.vis.plots.items():
