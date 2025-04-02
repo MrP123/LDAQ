@@ -126,7 +126,7 @@ class NITaskOutput:
         return f"Task name: {self.task_name}\nConnected devices:\n{devices:s}\nChannels: {list(self.channels.keys())}"
 
 class NITask:
-    def __init__(self, task_name: str, sample_rate: float, overwrite: Optional[bool] = False ,settings_file: Optional[str] = None) -> None:
+    def __init__(self, task_name: str, sample_rate: float, overwrite: Optional[bool] = False, settings_file: Optional[str] = None) -> None:
         """Create a new NI task.
         
         Args:
